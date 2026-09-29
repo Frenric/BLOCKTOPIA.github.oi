@@ -2,38 +2,65 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Would You Rather? — Communication Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Blocktopia Memory Match</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="prompt-screen" aria-live="polite">
-      <section class="prompt-card" aria-labelledby="questionTitle">
-        <div class="welcome-header">
-          <img class="welcome-logo" src="blocktopia.jpg" alt="Blocktopia logo" />
-          <p class="welcome-text">Welcome</p>
-        </div>
-
-        <h1 id="questionTitle">Would you rather work alone or with a team?</h1>
-
-        <div class="choice-grid" role="group" aria-label="Answer choices">
-          <button class="choice-button" type="button">Work alone</button>
-          <button class="choice-button" type="button">Work with a team</button>
-        </div>
-
-        <div class="explain-panel hidden" id="explainPanel">
-          <label for="nameInput">Name (optional)</label>
-          <input id="nameInput" type="text" maxlength="40" autocomplete="nickname" placeholder="Leave blank to post anonymously" />
-          <label for="reasonInput">Why?</label>
-          <textarea id="reasonInput" rows="4" placeholder="Tell us your reason..."></textarea>
-          <button class="submit-button" id="submitReason" type="button">Submit</button>
-        </div>
-
-        <section class="response-list hidden" id="responseCard" aria-label="Responses" aria-live="polite">
-          <h2 class="response-heading">Responses</h2>
-          <div id="responsesList"></div>
-        </section>
+    <main class="memory-app">
+      <section id="startScreen" class="start-screen" aria-labelledby="menuTitle">
+        <img class="welcome-logo" src="blocktopia.jpg" alt="Blocktopia" />
+        <p class="eyebrow">Welcome to</p>
+        <h1 id="menuTitle">Blocktopia</h1>
+        <p class="menu-description">Ready to test your memory with the team?</p>
+        <button id="startBtn" class="start-button" type="button">Start Game</button>
       </section>
+
+      <div id="gameScreen" class="layout" hidden>
+        <section class="game-panel" aria-label="Memory game area">
+          <header class="game-header">
+            <div class="title-wrap">
+              <p class="eyebrow">Blocktopia</p>
+              <h1>Memory Match</h1>
+            </div>
+            <button id="resetBtn" class="reset-button" type="button">New Game</button>
+          </header>
+
+          <section class="scoreboard" aria-label="Game stats">
+            <div class="stat">
+              <span class="label">Moves</span>
+              <strong id="moves">0</strong>
+            </div>
+            <div class="stat">
+              <span class="label">Matches</span>
+              <strong id="matches">0 / 8</strong>
+            </div>
+          </section>
+
+          <div id="message" class="message" aria-live="polite">Find all the matching pairs.</div>
+          <section id="gameBoard" class="game-board" aria-label="Memory cards"></section>
+        </section>
+
+        <aside class="chat-panel" aria-label="Messenger area">
+          <div class="chat-header">
+            <div class="chat-header-text">
+              <span class="chat-status-dot"></span>
+              <h2>Team Comments</h2>
+            </div>
+          </div>
+
+          <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+          <p id="chatNotice" class="chat-notice" aria-live="polite"></p>
+
+          <form id="chatForm" class="chat-form">
+            <input id="chatInput" type="text" maxlength="160" placeholder="Write a friendly comment..." aria-label="Write a friendly comment" />
+            <button type="submit">Post</button>
+          </form>
+        </aside>
+      </div>
     </main>
 
     <script src="script.js"></script>
