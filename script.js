@@ -11,8 +11,11 @@ const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatNotice = document.getElementById('chatNotice');
 
-const symbols = ['🌙', '🚀', '⭐', '🎮', '🌈', '💎', '🔥', '🎵'];
-const blockedWords = new Set(['asshole', 'bastard', 'bitch', 'crap', 'damn', 'fuck', 'shit']);
+const symbols = ['⛏️', '💎', '🧱', '🪨', '🌳', '🥕', '🐷', '🧟'];
+const blockedWords = new Set([
+  'asshole', 'bastard', 'bitch', 'crap', 'damn', 'fuck', 'shit',
+  'tite', 'tangina', 'bobo', 'gago', 'tarantado', 'kike', 'pekpek', 'kepkep', 'etit', 'etits',
+]);
 let conversation = [];
 
 let deck = [];
