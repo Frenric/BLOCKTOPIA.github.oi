@@ -11,8 +11,10 @@ const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatNotice = document.getElementById('chatNotice');
 
+// These symbols are used to make the card pairs.
 const symbols = ['⛏️', '💎', '🧱', '🪨', '🌳', '🥕', '🐷', '🧟'];
 
+// Comments containing any of these words will not be posted.
 const blockedWords = [
   'asshole', 'bastard', 'bitch', 'crap', 'damn', 'fuck', 'shit',
   'tite', 'tangina', 'bobo', 'gago', 'tarantado', 'kike', 'pekpek', 'kepkep', 'etit', 'etits'
@@ -27,6 +29,7 @@ let moves = 0;
 let matches = 0;
 let hideCardsTimer = null;
 
+// Make a copy of the cards and swap them into random places.
 function shuffleCards(items) {
   let shuffledItems = [];
 
@@ -44,6 +47,7 @@ function shuffleCards(items) {
   return shuffledItems;
 }
 
+// Update the move and match numbers on the page.
 function updateStats() {
   movesElement.textContent = moves;
   matchesElement.textContent = matches + ' / ' + symbols.length;
@@ -53,7 +57,9 @@ function setMessage(text) {
   messageElement.textContent = text;
 }
 
+// Show all comments in the chat area.
 function showComments() {
+  // Clear the old messages before drawing them again.
   chatMessages.innerHTML = '';
 
   if (comments.length === 0) {
@@ -93,6 +99,7 @@ function addComment(text) {
   showComments();
 }
 
+// Check if a word matches one of the blocked words.
 function isBlockedWord(word) {
   for (let i = 0; i < blockedWords.length; i++) {
     if (word === blockedWords[i]) {
@@ -103,6 +110,7 @@ function isBlockedWord(word) {
   return false;
 }
 
+// Split the comment into words and check each word.
 function hasBlockedWord(text) {
   let lowerCaseText = text.toLowerCase();
   let currentWord = '';
@@ -127,6 +135,7 @@ function hasBlockedWord(text) {
   return false;
 }
 
+// Make sixteen cards and put them on the game board.
 function buildBoard() {
   board.innerHTML = '';
   cards = [];
@@ -142,7 +151,6 @@ function buildBoard() {
     let card = document.createElement('button');
     card.type = 'button';
     card.className = 'memory-card';
-    card.dataset.symbol = cards[i];
     card.setAttribute('aria-label', 'Hidden card');
 
     let frontFace = document.createElement('span');
@@ -160,6 +168,7 @@ function buildBoard() {
   }
 }
 
+// Turn over the two cards after the player finds no match.
 function hideCards() {
   if (firstCard !== null) {
     firstCard.classList.remove('flipped');
@@ -176,6 +185,7 @@ function hideCards() {
   setMessage('Keep going!');
 }
 
+// Check the card the player clicked.
 function handleCardClick(event) {
   let card = event.currentTarget;
 
@@ -203,7 +213,8 @@ function handleCardClick(event) {
   moves = moves + 1;
   updateStats();
 
-  if (firstCard.dataset.symbol === secondCard.dataset.symbol) {
+  // The second span in each button shows that card's symbol.
+  if (firstCard.children[1].textContent === secondCard.children[1].textContent) {
     firstCard.classList.add('matched');
     secondCard.classList.add('matched');
     firstCard.disabled = true;
@@ -227,7 +238,9 @@ function handleCardClick(event) {
   hideCardsTimer = setTimeout(hideCards, 750);
 }
 
+// Reset the counters and create a new shuffled game.
 function resetGame() {
+  // Stop an old mismatch timer if New Game is pressed.
   if (hideCardsTimer !== null) {
     clearTimeout(hideCardsTimer);
     hideCardsTimer = null;
@@ -243,11 +256,13 @@ function resetGame() {
   buildBoard();
 }
 
+// Hide the start page and show the game.
 function startGame() {
   startScreen.hidden = true;
   gameScreen.hidden = false;
 }
 
+// Check and post a comment from the form.
 function postComment(event) {
   event.preventDefault();
   let text = chatInput.value.trim();
@@ -266,6 +281,7 @@ function postComment(event) {
   chatInput.value = '';
 }
 
+// Set up the page buttons and form.
 chatForm.addEventListener('submit', postComment);
 resetButton.addEventListener('click', resetGame);
 startButton.addEventListener('click', startGame);
