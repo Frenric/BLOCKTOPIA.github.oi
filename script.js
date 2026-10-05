@@ -1,81 +1,86 @@
 const board = document.getElementById('gameBoard');
-const movesEl = document.getElementById('moves');
-const matchesEl = document.getElementById('matches');
-const messageEl = document.getElementById('message');
-const resetBtn = document.getElementById('resetBtn');
+const movesElement = document.getElementById('moves');
+const matchesElement = document.getElementById('matches');
+const messageElement = document.getElementById('message');
+const resetButton = document.getElementById('resetBtn');
 const startScreen = document.getElementById('startScreen');
 const gameScreen = document.getElementById('gameScreen');
-const startBtn = document.getElementById('startBtn');
+const startButton = document.getElementById('startBtn');
 const chatMessages = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatNotice = document.getElementById('chatNotice');
 
 const symbols = ['⛏️', '💎', '🧱', '🪨', '🌳', '🥕', '🐷', '🧟'];
+
 const blockedWords = [
   'asshole', 'bastard', 'bitch', 'crap', 'damn', 'fuck', 'shit',
-  'tite', 'tangina', 'bobo', 'gago', 'tarantado', 'kike', 'pekpek', 'kepkep', 'etit', 'etits',
+  'tite', 'tangina', 'bobo', 'gago', 'tarantado', 'kike', 'pekpek', 'kepkep', 'etit', 'etits'
 ];
-let conversation = [];
 
-let deck = [];
+let comments = [];
+let cards = [];
 let firstCard = null;
 let secondCard = null;
-let lockBoard = false;
+let boardIsLocked = false;
 let moves = 0;
 let matches = 0;
+let hideCardsTimer = null;
 
-function shuffle(items) {
-  const copy = items.slice();
+function shuffleCards(items) {
+  let shuffledItems = [];
 
-  for (let i = copy.length - 1; i > 0; i--) {
-    const randomIndex = Math.floor(Math.random() * (i + 1));
-    const oldItem = copy[i];
-    copy[i] = copy[randomIndex];
-    copy[randomIndex] = oldItem;
+  for (let i = 0; i < items.length; i++) {
+    shuffledItems.push(items[i]);
   }
 
-  return copy;
+  for (let i = shuffledItems.length - 1; i > 0; i--) {
+    let randomIndex = Math.floor(Math.random() * (i + 1));
+    let savedCard = shuffledItems[i];
+    shuffledItems[i] = shuffledItems[randomIndex];
+    shuffledItems[randomIndex] = savedCard;
+  }
+
+  return shuffledItems;
 }
 
 function updateStats() {
-  movesEl.textContent = String(moves);
-  matchesEl.textContent = matches + ' / ' + symbols.length;
+  movesElement.textContent = moves;
+  matchesElement.textContent = matches + ' / ' + symbols.length;
 }
 
 function setMessage(text) {
-  messageEl.textContent = text;
+  messageElement.textContent = text;
 }
 
-function renderMessages() {
+function showComments() {
   chatMessages.innerHTML = '';
 
-  if (conversation.length === 0) {
-    const emptyState = document.createElement('p');
-    emptyState.className = 'chat-empty';
-    emptyState.textContent = 'No comments yet. Be kind and keep it family-friendly!';
-    chatMessages.appendChild(emptyState);
+  if (comments.length === 0) {
+    let emptyMessage = document.createElement('p');
+    emptyMessage.className = 'chat-empty';
+    emptyMessage.textContent = 'No comments yet. Be kind and keep it family-friendly!';
+    chatMessages.appendChild(emptyMessage);
     return;
   }
 
-  for (let i = 0; i < conversation.length; i++) {
-    const entry = conversation[i];
-    const row = document.createElement('div');
+  for (let i = 0; i < comments.length; i++) {
+    let row = document.createElement('div');
     row.className = 'chat-row self';
 
-    const bubble = document.createElement('div');
+    let bubble = document.createElement('div');
     bubble.className = 'chat-bubble self';
 
-    const sender = document.createElement('div');
+    let sender = document.createElement('div');
     sender.className = 'chat-sender';
-    sender.textContent = entry.sender;
+    sender.textContent = 'You';
 
-    const text = document.createElement('div');
-    text.className = 'chat-text';
-    text.textContent = entry.text;
+    let commentText = document.createElement('div');
+    commentText.className = 'chat-text';
+    commentText.textContent = comments[i];
 
     bubble.appendChild(sender);
-    bubble.appendChild(text);
+    bubble.appendChild(commentText);
     row.appendChild(bubble);
     chatMessages.appendChild(row);
   }
@@ -83,16 +88,14 @@ function renderMessages() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function addChatMessage(text) {
-  conversation.push({ sender: 'You', text });
-  renderMessages();
+function addComment(text) {
+  comments.push(text);
+  showComments();
 }
 
-function hasBlockedWord(text) {
-  const words = text.toLowerCase().match(/[a-z]+/g) || [];
-
-  for (let i = 0; i < words.length; i++) {
-    if (blockedWords.includes(words[i])) {
+function isBlockedWord(word) {
+  for (let i = 0; i < blockedWords.length; i++) {
+    if (word === blockedWords[i]) {
       return true;
     }
   }
@@ -100,44 +103,83 @@ function hasBlockedWord(text) {
   return false;
 }
 
+function hasBlockedWord(text) {
+  let lowerCaseText = text.toLowerCase();
+  let currentWord = '';
+
+  for (let i = 0; i < lowerCaseText.length; i++) {
+    let character = lowerCaseText[i];
+
+    if (character >= 'a' && character <= 'z') {
+      currentWord = currentWord + character;
+    } else {
+      if (currentWord !== '' && isBlockedWord(currentWord)) {
+        return true;
+      }
+      currentWord = '';
+    }
+  }
+
+  if (currentWord !== '' && isBlockedWord(currentWord)) {
+    return true;
+  }
+
+  return false;
+}
+
 function buildBoard() {
   board.innerHTML = '';
+  cards = [];
 
-  deck = [];
-  // Add each symbol twice so every card has a matching pair.
   for (let i = 0; i < symbols.length; i++) {
-    deck.push({ symbol: symbols[i] });
-    deck.push({ symbol: symbols[i] });
+    cards.push(symbols[i]);
+    cards.push(symbols[i]);
   }
-  deck = shuffle(deck);
 
-  for (let i = 0; i < deck.length; i++) {
-    const card = deck[i];
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'memory-card';
-    button.dataset.symbol = card.symbol;
-    button.setAttribute('aria-label', 'Hidden card');
+  cards = shuffleCards(cards);
 
-    const frontFace = document.createElement('span');
+  for (let i = 0; i < cards.length; i++) {
+    let card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'memory-card';
+    card.dataset.symbol = cards[i];
+    card.setAttribute('aria-label', 'Hidden card');
+
+    let frontFace = document.createElement('span');
     frontFace.className = 'card-face card-front';
     frontFace.textContent = '?';
 
-    const backFace = document.createElement('span');
+    let backFace = document.createElement('span');
     backFace.className = 'card-face card-back';
-    backFace.textContent = card.symbol;
+    backFace.textContent = cards[i];
 
-    button.appendChild(frontFace);
-    button.appendChild(backFace);
-    button.addEventListener('click', function () {
-      handleCardClick(button);
-    });
-    board.appendChild(button);
+    card.appendChild(frontFace);
+    card.appendChild(backFace);
+    card.addEventListener('click', handleCardClick);
+    board.appendChild(card);
   }
 }
 
-function handleCardClick(card) {
-  if (lockBoard) {
+function hideCards() {
+  if (firstCard !== null) {
+    firstCard.classList.remove('flipped');
+  }
+
+  if (secondCard !== null) {
+    secondCard.classList.remove('flipped');
+  }
+
+  firstCard = null;
+  secondCard = null;
+  boardIsLocked = false;
+  hideCardsTimer = null;
+  setMessage('Keep going!');
+}
+
+function handleCardClick(event) {
+  let card = event.currentTarget;
+
+  if (boardIsLocked) {
     return;
   }
 
@@ -151,14 +193,14 @@ function handleCardClick(card) {
 
   card.classList.add('flipped');
 
-  if (!firstCard) {
+  if (firstCard === null) {
     firstCard = card;
     setMessage('Pick one more card.');
     return;
   }
 
   secondCard = card;
-  moves += 1;
+  moves = moves + 1;
   updateStats();
 
   if (firstCard.dataset.symbol === secondCard.dataset.symbol) {
@@ -166,7 +208,7 @@ function handleCardClick(card) {
     secondCard.classList.add('matched');
     firstCard.disabled = true;
     secondCard.disabled = true;
-    matches += 1;
+    matches = matches + 1;
     updateStats();
     setMessage('Nice match!');
 
@@ -180,23 +222,20 @@ function handleCardClick(card) {
     return;
   }
 
-  lockBoard = true;
+  boardIsLocked = true;
   setMessage('Not a match — try again.');
-
-  setTimeout(() => {
-    firstCard.classList.remove('flipped');
-    secondCard.classList.remove('flipped');
-    firstCard = null;
-    secondCard = null;
-    lockBoard = false;
-    setMessage('Keep going!');
-  }, 750);
+  hideCardsTimer = setTimeout(hideCards, 750);
 }
 
 function resetGame() {
+  if (hideCardsTimer !== null) {
+    clearTimeout(hideCardsTimer);
+    hideCardsTimer = null;
+  }
+
   firstCard = null;
   secondCard = null;
-  lockBoard = false;
+  boardIsLocked = false;
   moves = 0;
   matches = 0;
   updateStats();
@@ -211,9 +250,9 @@ function startGame() {
 
 function postComment(event) {
   event.preventDefault();
-  const text = chatInput.value.trim();
+  let text = chatInput.value.trim();
 
-  if (!text) {
+  if (text === '') {
     return;
   }
 
@@ -223,12 +262,13 @@ function postComment(event) {
   }
 
   chatNotice.textContent = '';
-  addChatMessage(text);
+  addComment(text);
   chatInput.value = '';
 }
 
 chatForm.addEventListener('submit', postComment);
-resetBtn.addEventListener('click', resetGame);
-startBtn.addEventListener('click', startGame);
-renderMessages();
+resetButton.addEventListener('click', resetGame);
+startButton.addEventListener('click', startGame);
+
+showComments();
 resetGame();
