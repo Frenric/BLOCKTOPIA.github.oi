@@ -12,10 +12,10 @@ const chatInput = document.getElementById('chatInput');
 const chatNotice = document.getElementById('chatNotice');
 
 const symbols = ['⛏️', '💎', '🧱', '🪨', '🌳', '🥕', '🐷', '🧟'];
-const blockedWords = new Set([
+const blockedWords = [
   'asshole', 'bastard', 'bitch', 'crap', 'damn', 'fuck', 'shit',
   'tite', 'tangina', 'bobo', 'gago', 'tarantado', 'kike', 'pekpek', 'kepkep', 'etit', 'etits',
-]);
+];
 let conversation = [];
 
 let deck = [];
@@ -26,11 +26,13 @@ let moves = 0;
 let matches = 0;
 
 function shuffle(items) {
-  const copy = [...items];
+  const copy = items.slice();
 
   for (let i = copy.length - 1; i > 0; i--) {
     const randomIndex = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[randomIndex]] = [copy[randomIndex], copy[i]];
+    const oldItem = copy[i];
+    copy[i] = copy[randomIndex];
+    copy[randomIndex] = oldItem;
   }
 
   return copy;
@@ -38,7 +40,7 @@ function shuffle(items) {
 
 function updateStats() {
   movesEl.textContent = String(moves);
-  matchesEl.textContent = `${matches} / ${symbols.length}`;
+  matchesEl.textContent = matches + ' / ' + symbols.length;
 }
 
 function setMessage(text) {
@@ -56,12 +58,13 @@ function renderMessages() {
     return;
   }
 
-  conversation.forEach((entry) => {
+  for (let i = 0; i < conversation.length; i++) {
+    const entry = conversation[i];
     const row = document.createElement('div');
-    row.className = `chat-row ${entry.own ? 'self' : 'other'}`;
+    row.className = 'chat-row self';
 
     const bubble = document.createElement('div');
-    bubble.className = `chat-bubble ${entry.own ? 'self' : 'other'}`;
+    bubble.className = 'chat-bubble self';
 
     const sender = document.createElement('div');
     sender.className = 'chat-sender';
@@ -71,56 +74,74 @@ function renderMessages() {
     text.className = 'chat-text';
     text.textContent = entry.text;
 
-    bubble.append(sender, text);
+    bubble.appendChild(sender);
+    bubble.appendChild(text);
     row.appendChild(bubble);
     chatMessages.appendChild(row);
-  });
+  }
 
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function addChatMessage(text) {
-  conversation.push({ sender: 'You', text, own: true });
+  conversation.push({ sender: 'You', text });
   renderMessages();
 }
 
 function hasBlockedWord(text) {
-  const words = text.toLowerCase().match(/[a-z']+/g) || [];
-  return words.some((word) => blockedWords.has(word.replace(/^'+|'+$/g, '')));
+  const words = text.toLowerCase().match(/[a-z]+/g) || [];
+
+  for (let i = 0; i < words.length; i++) {
+    if (blockedWords.includes(words[i])) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function buildBoard() {
   board.innerHTML = '';
 
-  deck = shuffle(
-    symbols
-      .flatMap((symbol) => [
-        { id: `${symbol}-a`, symbol },
-        { id: `${symbol}-b`, symbol },
-      ])
-      .map((card) => ({ ...card, key: `${card.id}-${Math.random()}` }))
-  );
+  deck = [];
+  // Add each symbol twice so every card has a matching pair.
+  for (let i = 0; i < symbols.length; i++) {
+    deck.push({ symbol: symbols[i] });
+    deck.push({ symbol: symbols[i] });
+  }
+  deck = shuffle(deck);
 
-  deck.forEach((card) => {
+  for (let i = 0; i < deck.length; i++) {
+    const card = deck[i];
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'memory-card';
     button.dataset.symbol = card.symbol;
-    button.dataset.id = card.id;
     button.setAttribute('aria-label', 'Hidden card');
-    button.innerHTML = `
-      <span class="card-face card-front">?</span>
-      <span class="card-face card-back">${card.symbol}</span>
-    `;
-    button.addEventListener('click', () => handleCardClick(button));
+
+    const frontFace = document.createElement('span');
+    frontFace.className = 'card-face card-front';
+    frontFace.textContent = '?';
+
+    const backFace = document.createElement('span');
+    backFace.className = 'card-face card-back';
+    backFace.textContent = card.symbol;
+
+    button.appendChild(frontFace);
+    button.appendChild(backFace);
+    button.addEventListener('click', function () {
+      handleCardClick(button);
+    });
     board.appendChild(button);
-  });
+  }
 }
 
 function handleCardClick(card) {
+  if (lockBoard) {
+    return;
+  }
+
   if (
-    lockBoard ||
-    !card ||
     card === firstCard ||
     card.classList.contains('flipped') ||
     card.classList.contains('matched')
@@ -183,7 +204,12 @@ function resetGame() {
   buildBoard();
 }
 
-chatForm.addEventListener('submit', (event) => {
+function startGame() {
+  startScreen.hidden = true;
+  gameScreen.hidden = false;
+}
+
+function postComment(event) {
   event.preventDefault();
   const text = chatInput.value.trim();
 
@@ -199,13 +225,10 @@ chatForm.addEventListener('submit', (event) => {
   chatNotice.textContent = '';
   addChatMessage(text);
   chatInput.value = '';
-});
+}
 
+chatForm.addEventListener('submit', postComment);
 resetBtn.addEventListener('click', resetGame);
-startBtn.addEventListener('click', () => {
-  startScreen.hidden = true;
-  gameScreen.hidden = false;
-});
+startBtn.addEventListener('click', startGame);
 renderMessages();
 resetGame();
-

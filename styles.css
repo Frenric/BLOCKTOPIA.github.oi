@@ -296,16 +296,6 @@ h1 {
   color: #214b63;
 }
 
-.chat-pill {
-  background: #dff8ea;
-  border: 2px solid #1f2d3d;
-  color: #214b63;
-  border-radius: 0;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
 .chat-messages {
   display: flex;
   flex-direction: column;
@@ -405,23 +395,6 @@ button:focus-visible,
 input:focus-visible {
   outline: 4px solid #214b63;
   outline-offset: 3px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .start-button:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 #1f2d3d;
-  }
-
-  .reset-button:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0 #1f2d3d;
-  }
-
-  .memory-card:hover:not(:disabled) {
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0 #1f2d3d;
-  }
 }
 
 @media (max-width: 900px) {
